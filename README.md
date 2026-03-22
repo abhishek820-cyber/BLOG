@@ -1,33 +1,53 @@
-# 📝 Django React Blog App
+# 📝 The Daily Post
 
-A full-stack blog application built using Django (backend) and React (frontend).
+A full-stack blog application built using Django and React where users can write, edit, and manage their own posts with authentication.
 
-## 🚀 Features
+---
 
-- Create, Read, Update, Delete posts
-- Multi-page navigation (React Router)
-- Clean UI design
-- REST API with Django REST Framework
+## 🚀 Live Features
+
+- ✍️ Create, edit, and delete blog posts
+- 🔐 User authentication (Signup & Login with JWT)
+- 📄 Multi-page navigation (React Router)
+- 🎨 Clean and modern UI
+- ⚡ Fast API with Django REST Framework
+
+---
+
+## 🧠 Core Values
+
+**Write · Reflect · Share**
+
+---
 
 ## 🛠 Tech Stack
 
-- Frontend: React
-- Backend: Django, DRF
-- Database: SQLite
-
-## 📦 Setup
+### Frontend
+- React
+- React Router
+- Axios
+- CSS
 
 ### Backend
-cd backend
-python manage.py runserver
+- Django
+- Django REST Framework
+- JWT Authentication
 
-### Frontend
-cd frontend
-npm install
-npm start
+### Database
+- SQLite (Development)
 
-## 🌟 Future Improvements
+---
 
-- Authentication (login/register)
-- Comments system
-- Deployment
+## 📸 Screenshots
+
+*(Add screenshots here later)*
+
+---
+
+## ⚙️ Installation Guide
+
+### 1️⃣ Clone Repository
+
+```bash
+git clone https://github.com/abhishek820-cyber/BLOG.git
+cd BLOG
