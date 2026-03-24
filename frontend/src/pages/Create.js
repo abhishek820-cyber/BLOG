@@ -17,33 +17,47 @@ function Create({ onLogout }) {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  console.log("SUBMIT CLICKED"); // 🔥 debug
+    // 🔒 Prevent double submit
+    if (submitting) return;
 
-  if (!title.trim() || !content.trim()) {
-    alert("Title and content are required!");
-    return;
-  }
+    // ✅ Validation
+    if (!title.trim() || !content.trim()) {
+      alert("Title and content are required!");
+      return;
+    }
 
-  setSubmitting(true);
-  console.log("SENDING REQUEST..."); // 🔥 debug
+    setSubmitting(true);
 
-  api.post("/api/posts/", { title, content })
-    .then((res) => {
-      console.log("SUCCESS:", res.data);
-      alert("Blog published ✅");
-      navigate("/");
-    })
-    .catch((err) => {
-      console.error("ERROR:", err);
-      alert("Something went wrong");
-    })
-    .finally(() => {
-      setSubmitting(false); // 🔥 prevents freeze
-    });
-};
+    api.post("/api/posts/", { title, content })
+      .then((res) => {
+        console.log("SUCCESS:", res.data);
+
+        // ✅ Reset form (optional)
+        setTitle("");
+        setContent("");
+
+        // ✅ Redirect to home
+        navigate("/");
+        
+        // 🔥 Optional: force refresh if posts not updating
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.error("ERROR:", err);
+
+        if (err.response) {
+          alert(`Error ${err.response.status}: ${JSON.stringify(err.response.data)}`);
+        } else {
+          alert("Network error");
+        }
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  };
 
   const words = wordCount(content);
   const mins = readTime(content);
@@ -83,6 +97,7 @@ const handleSubmit = (e) => {
               <textarea
                 className="field-textarea field-textarea-tall"
                 rows={16}
+                placeholder="Start writing your story..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
@@ -100,10 +115,11 @@ const handleSubmit = (e) => {
             {/* BUTTONS */}
             <div className="form-actions">
               <button
-                 onClick={handleSubmit}
-                 className="btn-submit"
+                type="submit"
+                className="btn-submit"
+                disabled={!titleOk || !contentOk || submitting}
               >
-               Test Publish
+                {submitting ? "Publishing…" : "Publish Story"}
               </button>
 
               <button
