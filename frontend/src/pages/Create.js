@@ -17,35 +17,33 @@ function Create({ onLogout }) {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    if (!title.trim() || !content.trim()) {
-      alert("Title and content are required!");
-      return;
-    }
+  console.log("SUBMIT CLICKED"); // 🔥 debug
 
-    setSubmitting(true);
+  if (!title.trim() || !content.trim()) {
+    alert("Title and content are required!");
+    return;
+  }
 
-    api.post("/api/posts/", { title, content })
-      .then((res) => {
-        console.log("POST SUCCESS:", res.data);
-        alert("Blog published successfully ✅");
-        navigate("/");
-      })
-      .catch((err) => {
-        console.error("POST ERROR:", err);
+  setSubmitting(true);
+  console.log("SENDING REQUEST..."); // 🔥 debug
 
-        // Show real error message
-        if (err.response) {
-          alert(`Error: ${err.response.status} - ${JSON.stringify(err.response.data)}`);
-        } else {
-          alert("Network error or server not reachable");
-        }
-
-        setSubmitting(false);
-      });
-  };
+  api.post("/api/posts/", { title, content })
+    .then((res) => {
+      console.log("SUCCESS:", res.data);
+      alert("Blog published ✅");
+      navigate("/");
+    })
+    .catch((err) => {
+      console.error("ERROR:", err);
+      alert("Something went wrong");
+    })
+    .finally(() => {
+      setSubmitting(false); // 🔥 prevents freeze
+    });
+};
 
   const words = wordCount(content);
   const mins = readTime(content);
@@ -102,11 +100,10 @@ function Create({ onLogout }) {
             {/* BUTTONS */}
             <div className="form-actions">
               <button
-                type="submit"
-                className="btn-submit"
-                disabled={!titleOk || !contentOk || submitting}
+                 onClick={handleSubmit}
+                 className="btn-submit"
               >
-                {submitting ? "Publishing…" : "Publish Story"}
+               Test Publish
               </button>
 
               <button
