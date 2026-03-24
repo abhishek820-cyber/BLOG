@@ -1,13 +1,18 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-function Layout({ children }) {
+function Layout({ children, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate("/login");
+  };
 
   return (
     <div className="app">
@@ -41,9 +46,9 @@ function Layout({ children }) {
           >About</span>
           <span className="nav-dot">·</span>
           <span
-            className={location.pathname === "/login" ? "nav-active" : ""}
-            onClick={() => navigate("/login")}
-          >Login</span>
+            onClick={handleLogout}
+            style={{ cursor: "pointer", color: "#c9a84c" }}
+          >Logout</span>
         </nav>
       </header>
 

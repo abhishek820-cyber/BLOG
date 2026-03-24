@@ -8,12 +8,12 @@ const stats = [
   { value: "Connect", label: "Ideas" },
 ];
 
-function About() {
+function About({ onLogout }) {
   const navigate = useNavigate();
 
   return (
-    <Layout>
-      <div className="about-page">
+    <Layout onLogout={onLogout}>
+        <div className="about-page">
 
         {/* ── HERO ── */}
         <div className="about-hero">

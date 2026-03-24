@@ -424,7 +424,7 @@ const styles = `
   }
 `;
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -445,6 +445,7 @@ export default function Login() {
     setLoading(true);
     // Simulate auth — replace this with your real auth call
     setTimeout(() => {
+      if (onLogin) onLogin();
       setLoading(false);
       navigate("/");
     }, 1500);

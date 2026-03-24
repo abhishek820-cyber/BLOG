@@ -11,7 +11,7 @@ function readTime(text) {
   return Math.max(1, Math.ceil(wordCount(text) / 200));
 }
 
-function Edit() {
+function Edit({ onLogout }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
@@ -45,8 +45,8 @@ function Edit() {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="loading-state">
+      <Layout onLogout={onLogout}>
+          <div className="loading-state">
           <div className="loading-dots"><span /><span /><span /></div>
         </div>
       </Layout>
@@ -54,8 +54,8 @@ function Edit() {
   }
 
   return (
-    <Layout>
-      <div className="editor-layout">
+      <Layout onLogout={onLogout}>
+        <div className="editor-layout">
         {/* ── EDITOR ── */}
         <section className="form-section editor-main">
           <div className="form-header">

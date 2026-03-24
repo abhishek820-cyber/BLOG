@@ -11,7 +11,7 @@ function readTime(text) {
   return Math.max(1, Math.ceil(wordCount(text) / 200));
 }
 
-function Create() {
+function Create({ onLogout }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -32,8 +32,8 @@ function Create() {
   const contentOk = content.trim().length > 0;
 
   return (
-    <Layout>
-      <div className="editor-layout">
+    <Layout onLogout={onLogout}>
+        <div className="editor-layout">
         {/* ── EDITOR ── */}
         <section className="form-section editor-main">
           <div className="form-header">

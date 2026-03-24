@@ -18,7 +18,7 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function Home() {
+function Home({ onLogout}) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -48,7 +48,7 @@ function Home() {
   const rest = filtered.slice(1);
 
   return (
-    <Layout>
+   <Layout onLogout={onLogout}>
       {/* ── SEARCH + WRITE ── */}
       <div className="home-toolbar">
         <div className="search-wrap">
