@@ -10,7 +10,7 @@ from .models import Post, EmailVerificationToken
 from .serializers import PostSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
-
+from rest_framework.permissions import IsAuthenticated
 # ── Existing test endpoint ────────────────────────────────────────────────────
 
 @api_view(["GET"])
@@ -23,6 +23,13 @@ def test_api(request):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Post.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
