@@ -7,7 +7,7 @@ import About from "./pages/About";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import "./index.css";
-
+import VerifyEmail from "./pages/VerifyEmail";
 // ── Protected route wrapper ──────────────────────────────────────────────────
 function ProtectedRoute({ isAuthenticated, children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
@@ -87,7 +87,7 @@ function App() {
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
-
+        <Route path="/verify-email" element={<VerifyEmail />} />
       </Routes>
     </BrowserRouter>
   );
