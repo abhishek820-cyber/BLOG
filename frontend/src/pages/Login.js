@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
@@ -423,7 +424,7 @@ const styles = `
     .right { padding: 40px 28px; }
   }
 `;
-
+const API = process.env.REACT_APP_API_URL;
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -433,7 +434,7 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -443,13 +444,39 @@ export default function Login({ onLogin }) {
     }
 
     setLoading(true);
-    // Simulate auth — replace this with your real auth call
-    setTimeout(() => {
+    try {
+      const res = await axios.post(`${API}/api/token/`, {
+        username: email, // ⚠️ Django uses username (you used email input)
+        password: password,
+      });
+
+      console.log("LOGIN SUCCESS:", res.data);
+
+      // ✅ Save tokens
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+
+      // optional remember logic
+      if (!remember) {
+        sessionStorage.setItem("access", res.data.access);
+      }
+
       if (onLogin) onLogin();
-      setLoading(false);
+
       navigate("/");
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        setError("Invalid credentials or email not verified.");
+      } else {
+        setError("Something went wrong. Try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <>
