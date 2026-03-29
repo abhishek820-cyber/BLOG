@@ -63,14 +63,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+# ── Database — Postgres on Render, SQLite locally ────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 else:
-    # LOCAL DB (SQLite)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -93,6 +93,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -101,26 +103,5 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
-
-# ── Frontend URL (used in verification email links) ───────────────────────────
-# Change this to your production URL when deploying
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
-
-# ── Email configuration ───────────────────────────────────────────────────────
-# Using Gmail SMTP. Set these as environment variables — never hardcode!
-# In production: set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD as env vars.
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')       # your Gmail
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '') # Gmail App Password
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'noreply@thedailypost.com')
-
-# ── During development: print emails to console instead of sending ─────────────
-# Uncomment the line below and comment out the SMTP block above to test locally
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

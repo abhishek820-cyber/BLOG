@@ -1,19 +1,28 @@
 from rest_framework import serializers
 from .models import Post
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import User
+
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = '__all__'
+        # Expose all fields but make user read-only — set automatically from token
+        fields = ['id', 'title', 'content', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
 
-        # 🚨 BLOCK UNVERIFIED USERS
-        if not self.user.is_active:
-            raise AuthenticationFailed("Please verify your email first")
+class RegisterSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(min_length=8, write_only=True)
 
-        return data
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already taken.")
+        return value
+
+    def create(self, validated_data):
+        return User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            is_active=True,   # active immediately — no email verification
+        )
