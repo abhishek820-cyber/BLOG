@@ -7,87 +7,44 @@ import About from "./pages/About";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import "./index.css";
-import VerifyEmail from "./pages/VerifyEmail";
-// ── Protected route wrapper ──────────────────────────────────────────────────
+
 function ProtectedRoute({ isAuthenticated, children }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
-function App() {
-  // Persist login across page refreshes using localStorage
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem("isLoggedIn") === "true"
-  );
+function getToken() {
+  return localStorage.getItem("access") || sessionStorage.getItem("access");
+}
 
-  const login = () => {
-    localStorage.setItem("isLoggedIn", "true");
-    setIsAuthenticated(true);
-  };
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!getToken());
+
+  const login = () => setIsAuthenticated(true);
 
   const logout = () => {
-    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("rememberMe");
+    sessionStorage.removeItem("access");
+    sessionStorage.removeItem("refresh");
     setIsAuthenticated(false);
   };
 
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public */}
+        <Route path="/login"  element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={login} />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <Signup />} />
 
-        {/* Public routes */}
-        <Route
-          path="/login"
-          element={
-            isAuthenticated
-              ? <Navigate to="/" replace />
-              : <Login onLogin={login} />
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            isAuthenticated
-              ? <Navigate to="/" replace />
-              : <Signup onLogin={login} />
-          }
-        />
+        {/* Protected */}
+        <Route path="/"        element={<ProtectedRoute isAuthenticated={isAuthenticated}><Home   onLogout={logout} /></ProtectedRoute>} />
+        <Route path="/create"  element={<ProtectedRoute isAuthenticated={isAuthenticated}><Create onLogout={logout} /></ProtectedRoute>} />
+        <Route path="/edit/:id" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Edit  onLogout={logout} /></ProtectedRoute>} />
+        <Route path="/about"   element={<ProtectedRoute isAuthenticated={isAuthenticated}><About  onLogout={logout} /></ProtectedRoute>} />
 
-        {/* Protected routes — redirect to /login if not authenticated */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Home onLogout={logout} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/create"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Create onLogout={logout} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/edit/:id"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Edit onLogout={logout} />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <About onLogout={logout} />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Catch-all */}
+        {/* Catch-all — must be last */}
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const styles = `
@@ -424,59 +424,69 @@ const styles = `
     .right { padding: 40px 28px; }
   }
 `;
-const API = process.env.REACT_APP_API_URL;
+
+const API = "https://blog-2hg9.onrender.com";
+
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  const justRegistered = location.state?.registered === true;
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
-      setError("Please enter your email and password.");
+    if (!username || !password) {
+      setError("Please enter your username and password.");
       return;
     }
 
     setLoading(true);
     try {
       const res = await axios.post(`${API}/api/token/`, {
-        username: email, // ⚠️ Django uses username (you used email input)
-        password: password,
+        username,
+        password,
       });
 
-      console.log("LOGIN SUCCESS:", res.data);
+      const { access, refresh } = res.data;
 
-      // ✅ Save tokens
-      localStorage.setItem("access", res.data.access);
-      localStorage.setItem("refresh", res.data.refresh);
-
-      // optional remember logic
-      if (!remember) {
-        sessionStorage.setItem("access", res.data.access);
+      // ── Token storage ─────────────────────────────────────────────────────
+      // Always store access token in localStorage so App.js getToken() finds it
+      // Remember me ON  → also keep refresh in localStorage (stay logged in after tab close)
+      // Remember me OFF → refresh only in sessionStorage (expires when tab closes)
+      localStorage.setItem("access", access);
+      if (remember) {
+        localStorage.setItem("refresh", refresh);
+      } else {
+        sessionStorage.setItem("refresh", refresh);
       }
 
       if (onLogin) onLogin();
-
       navigate("/");
-    } catch (err) {
-      console.error(err);
 
+    } catch (err) {
       if (err.response?.status === 401) {
-        setError("Invalid credentials or email not verified.");
+        const msg = err.response?.data?.detail || "";
+      if (msg.toLowerCase().includes("no active account")) {
+        setError("Invalid username or password. Please try again.");
       } else {
-        setError("Something went wrong. Try again.");
+        setError("Invalid username or password.");
+      }
+      } else if (err.response?.status === 400) {
+        setError("Please fill in all fields.");
+      } else {
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <>
@@ -489,7 +499,6 @@ const handleSubmit = async (e) => {
             <div className="logo-icon"><span /><span /></div>
             <span className="logo-text">The Daily Post</span>
           </div>
-
           <div className="left-body">
             <p className="left-eyebrow">The Publication</p>
             <h1 className="left-headline">
@@ -502,7 +511,6 @@ const handleSubmit = async (e) => {
               for curious minds. No noise — just signal.
             </p>
           </div>
-
           <div className="left-footer">
             <div className="issue-tag">
               <span className="issue-dot" />
@@ -515,6 +523,11 @@ const handleSubmit = async (e) => {
         <div className="right">
           <div className="form-wrap">
 
+            {justRegistered && (
+              <div style={{ background: "rgba(39,174,96,0.08)", border: "1.5px solid rgba(39,174,96,0.3)", borderRadius: 2, padding: "12px 16px", marginBottom: 24, fontSize: 13, color: "#27ae60", lineHeight: 1.5 }}>
+                ✓ Account created! You can now sign in.
+              </div>
+            )}
             <div className="form-header">
               <p className="form-eyebrow">Member access</p>
               <h2 className="form-title">Sign in</h2>
@@ -524,21 +537,23 @@ const handleSubmit = async (e) => {
             </div>
 
             <form onSubmit={handleSubmit}>
+              {/* ── Username field — fixed: added id, className, label ── */}
               <div className="field">
-                <label className="field-label" htmlFor="email">Email</label>
+                <label className="field-label" htmlFor="username">Username</label>
                 <div className="field-input-wrap">
                   <input
-                    id="email"
+                    id="username"
                     className="field-input"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
                     required
                   />
                 </div>
               </div>
 
+              {/* ── Password field ── */}
               <div className="field">
                 <label className="field-label" htmlFor="password">Password</label>
                 <div className="field-input-wrap">
