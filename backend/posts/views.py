@@ -6,8 +6,8 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from .models import Post, UserProfile
 from .serializers import PostSerializer, RegisterSerializer, UserProfileSerializer
-
-
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
 # ── Health check ──────────────────────────────────────────────────────────────
 
 @api_view(["GET"])
@@ -47,6 +47,7 @@ def register(request):
 
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
 def profile(request):
     # Auto-create profile if missing (for accounts created before this feature)
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
