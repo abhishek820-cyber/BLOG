@@ -46,6 +46,11 @@ function Layout({ children, onLogout }) {
           >About</span>
           <span className="nav-dot">·</span>
           <span
+            className={location.pathname === "/profile" ? "nav-active" : ""}
+            onClick={() => navigate("/profile")}
+          >Profile</span>
+          <span className="nav-dot">·</span>
+          <span
             onClick={handleLogout}
             style={{ cursor: "pointer", color: "#c9a84c" }}
           >Logout</span>
