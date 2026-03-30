@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from datetime import timedelta
 import dj_database_url
+import cloudinary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,6 +22,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "posts",
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -105,3 +108,16 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+
+# ── Media files (user-uploaded avatars) ──────────────────────────────────────
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Install Pillow for image handling: pip install Pillow
+# Add to requirements.txt: Pillow>=10.0.0
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+cloudinary.config(
+    secure=True
+)
