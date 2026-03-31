@@ -7,6 +7,7 @@ import About from "./pages/About";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
+import AllPosts from "./pages/AllPosts";
 import "./index.css";
 
 function ProtectedRoute({ isAuthenticated, children }) {
@@ -43,7 +44,8 @@ function App() {
         <Route path="/create"  element={<ProtectedRoute isAuthenticated={isAuthenticated}><Create onLogout={logout} /></ProtectedRoute>} />
         <Route path="/edit/:id" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Edit  onLogout={logout} /></ProtectedRoute>} />
         <Route path="/about"   element={<ProtectedRoute isAuthenticated={isAuthenticated}><About   onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile onLogout={logout} /></ProtectedRoute>} />
+        <Route path="/profile"   element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile  onLogout={logout} /></ProtectedRoute>} />
+        <Route path="/all-posts"  element={<ProtectedRoute isAuthenticated={isAuthenticated}><AllPosts onLogout={logout} /></ProtectedRoute>} />
 
         {/* Catch-all — must be last */}
         <Route path="*" element={<Navigate to="/" replace />} />

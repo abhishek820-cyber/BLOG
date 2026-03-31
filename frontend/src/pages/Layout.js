@@ -46,6 +46,11 @@ function Layout({ children, onLogout }) {
           >About</span>
           <span className="nav-dot">·</span>
           <span
+            className={location.pathname === "/all-posts" ? "nav-active" : ""}
+            onClick={() => navigate("/all-posts")}
+          >Explore</span>
+          <span className="nav-dot">·</span>
+          <span
             className={location.pathname === "/profile" ? "nav-active" : ""}
             onClick={() => navigate("/profile")}
           >Profile</span>
