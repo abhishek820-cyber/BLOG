@@ -2,7 +2,6 @@ from pathlib import Path
 import os
 from datetime import timedelta
 import dj_database_url
-import cloudinary
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,9 +20,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "rest_framework",
     "corsheaders",
-    "posts",
+    # ── Cloudinary ──────────────────────────────────────────────────────────
     'cloudinary',
     'cloudinary_storage',
+    # ── Your app ────────────────────────────────────────────────────────────
+    "posts",
 ]
 
 MIDDLEWARE = [
@@ -109,18 +110,28 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
+# ── Cloudinary — set CLOUDINARY_URL in Render environment variables ──────────
+# Format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', '')
 
-# ── Media files (user-uploaded avatars) ──────────────────────────────────────
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Parse credentials from CLOUDINARY_URL if present
+if CLOUDINARY_URL:
+    import cloudinary
+    cloudinary.config(from_url=CLOUDINARY_URL)
 
-# Install Pillow for image handling: pip install Pillow
-# Add to requirements.txt: Pillow>=10.0.0
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+    # Store avatars in a dedicated folder on Cloudinary
+    'MEDIA_TAG':  'blog_media',
+}
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-    secure=True
-)
+# ── Media — use Cloudinary in production, local filesystem locally ────────────
+if os.environ.get('CLOUDINARY_URL'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = '/media/'   # Cloudinary overrides this with its own CDN URLs
+else:
+    # Local dev fallback
+    MEDIA_URL  = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
