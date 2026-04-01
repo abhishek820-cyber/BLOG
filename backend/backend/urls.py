@@ -4,7 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from posts.views import (
-    PostViewSet, test_api, all_posts, post_detail,
+    PostViewSet, test_api,
+    publish_post, unpublish_post,
+    all_posts, post_detail,
     toggle_like, post_comments, delete_comment,
     register, profile, delete_avatar, change_password
 )
@@ -23,10 +25,13 @@ urlpatterns = [
     path("api/profile/", profile),
     path("api/profile/avatar/", delete_avatar),
     path("api/change-password/", change_password),
-    # Public feed
-    path("api/all-posts/", all_posts),
-    path("api/all-posts/<int:pk>/", post_detail),
-    path("api/all-posts/<int:pk>/like/", toggle_like),
+    # Draft → publish shortcuts
+    path("api/posts/<int:pk>/publish/",   publish_post),
+    path("api/posts/<int:pk>/unpublish/", unpublish_post),
+    # Public explore feed
+    path("api/all-posts/",              all_posts),
+    path("api/all-posts/<int:pk>/",     post_detail),
+    path("api/all-posts/<int:pk>/like/",     toggle_like),
     path("api/all-posts/<int:pk>/comments/", post_comments),
-    path("api/comments/<int:pk>/", delete_comment),
+    path("api/comments/<int:pk>/",      delete_comment),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

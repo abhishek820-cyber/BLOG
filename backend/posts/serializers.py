@@ -4,7 +4,6 @@ from .models import Post, UserProfile, Like, Comment
 
 
 def resolve_avatar(profile, request):
-    """Single place to get avatar URL — works for both Cloudinary and local."""
     if not profile or not profile.avatar:
         return None
     try:
@@ -14,8 +13,8 @@ def resolve_avatar(profile, request):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    username    = serializers.CharField(source='user.username', read_only=True)
-    avatar_url  = serializers.SerializerMethodField()
+    username   = serializers.CharField(source='user.username', read_only=True)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model  = Comment
@@ -23,23 +22,22 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'username', 'avatar_url', 'created_at']
 
     def get_avatar_url(self, obj):
-        request = self.context.get('request')
         try:
-            return resolve_avatar(obj.user.profile, request)
+            return resolve_avatar(obj.user.profile, self.context.get('request'))
         except Exception:
             return None
 
 
 class PostSerializer(serializers.ModelSerializer):
-    """Owner-only — used in My Posts / Profile."""
+    """My Posts — owner sees everything including status."""
     class Meta:
         model  = Post
-        fields = ['id', 'title', 'content', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'title', 'content', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class PublicPostSerializer(serializers.ModelSerializer):
-    """All Posts feed — includes author info and social counts."""
+    """Explore feed — only published posts, with social data."""
     author        = serializers.CharField(source='user.username', read_only=True)
     author_avatar = serializers.SerializerMethodField()
     like_count    = serializers.SerializerMethodField()
@@ -49,15 +47,14 @@ class PublicPostSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Post
         fields = [
-            'id', 'title', 'content', 'created_at',
+            'id', 'title', 'content', 'created_at', 'updated_at',
             'author', 'author_avatar',
             'like_count', 'comment_count', 'liked_by_me',
         ]
 
     def get_author_avatar(self, obj):
-        request = self.context.get('request')
         try:
-            return resolve_avatar(obj.user.profile, request)
+            return resolve_avatar(obj.user.profile, self.context.get('request'))
         except Exception:
             return None
 
@@ -100,9 +97,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model  = UserProfile
         fields = ['username', 'bio', 'avatar', 'avatar_url', 'updated_at']
-        read_only_fields  = ['username', 'avatar_url', 'updated_at']
+        read_only_fields = ['username', 'avatar_url', 'updated_at']
         extra_kwargs = {'avatar': {'required': False, 'allow_null': True}}
 
     def get_avatar_url(self, obj):
-        request = self.context.get('request')
-        return resolve_avatar(obj, request)
+        return resolve_avatar(obj, self.context.get('request'))
