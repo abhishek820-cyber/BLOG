@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Create from "./pages/Create";
-import Edit from "./pages/Edit";
-import About from "./pages/About";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
+import Home     from "./pages/Home";
+import Create   from "./pages/Create";
+import Edit     from "./pages/Edit";
+import About    from "./pages/About";
+import Login    from "./pages/Login";
+import Signup   from "./pages/Signup";
+import Profile  from "./pages/Profile";
 import AllPosts from "./pages/AllPosts";
 import "./index.css";
 
@@ -15,40 +15,79 @@ function ProtectedRoute({ isAuthenticated, children }) {
 }
 
 function getToken() {
-  return localStorage.getItem("access") || sessionStorage.getItem("access");
+  return localStorage.getItem("access") || sessionStorage.getItem("access") || null;
 }
 
 function App() {
+  // Read token synchronously on first render — no async, no race
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getToken());
 
-  const login = () => setIsAuthenticated(true);
+  const login = useCallback(() => {
+    // Token was already written to localStorage by Login.jsx before this runs.
+    // Double-check it's actually there before flipping the auth flag.
+    if (getToken()) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("rememberMe");
     sessionStorage.removeItem("access");
     sessionStorage.removeItem("refresh");
     setIsAuthenticated(false);
-  };
+  }, []);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
-        <Route path="/login"  element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={login} />} />
-        <Route path="/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <Signup />} />
 
-        {/* Protected */}
-        <Route path="/"        element={<ProtectedRoute isAuthenticated={isAuthenticated}><Home   onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/create"  element={<ProtectedRoute isAuthenticated={isAuthenticated}><Create onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/edit/:id" element={<ProtectedRoute isAuthenticated={isAuthenticated}><Edit  onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/about"   element={<ProtectedRoute isAuthenticated={isAuthenticated}><About   onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/profile"   element={<ProtectedRoute isAuthenticated={isAuthenticated}><Profile  onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/all-posts"  element={<ProtectedRoute isAuthenticated={isAuthenticated}><AllPosts onLogout={logout} /></ProtectedRoute>} />
+        {/* ── Public ── */}
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Login onLogin={login} />}
+        />
+        <Route
+          path="/signup"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Signup />}
+        />
 
-        {/* Catch-all — must be last */}
+        {/* ── Protected ── */}
+        <Route path="/" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Home onLogout={logout} />
+          </ProtectedRoute>
+        } />
+        <Route path="/create" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Create onLogout={logout} />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit/:id" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Edit onLogout={logout} />
+          </ProtectedRoute>
+        } />
+        <Route path="/about" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <About onLogout={logout} />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Profile onLogout={logout} />
+          </ProtectedRoute>
+        } />
+        <Route path="/all-posts" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <AllPosts onLogout={logout} />
+          </ProtectedRoute>
+        } />
+
+        {/* ── Catch-all — must be last ── */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

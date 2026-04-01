@@ -25,11 +25,26 @@ export default function Home({ onLogout }) {
   const [filter,  setFilter]  = useState("all"); // 'all' | 'draft' | 'published'
   const navigate = useNavigate();
 
+  const [fetchError, setFetchError] = useState("");
+
   const fetchPosts = () => {
     setLoading(true);
+    setFetchError("");
     api.get("/api/posts/")
-      .then(res => { setPosts(res.data); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(res => {
+        setPosts(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoading(false);
+        if (err.code === "ECONNABORTED" || !err.response) {
+          setFetchError("Server is starting up. Refreshing in 10 seconds…");
+          // Auto-retry once after 10s (Render cold start)
+          setTimeout(fetchPosts, 10000);
+        } else {
+          setFetchError(`Could not load posts (${err.response?.status || "network error"}). Try refreshing.`);
+        }
+      });
   };
 
   useEffect(() => { fetchPosts(); }, []);
@@ -108,6 +123,17 @@ export default function Home({ onLogout }) {
           <span className="btn-plus">+</span> Write
         </button>
       </div>
+
+      {/* ── Fetch error ── */}
+      {fetchError && (
+        <div style={{
+          background: "rgba(192,57,43,0.06)", border: "1px solid rgba(192,57,43,0.2)",
+          borderRadius: 2, padding: "10px 16px", marginBottom: 20,
+          fontSize: 13, color: "#c0392b", display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span>⚠</span> {fetchError}
+        </div>
+      )}
 
       {/* ── Draft notice ── */}
       {drafts.length > 0 && filter !== "published" && (

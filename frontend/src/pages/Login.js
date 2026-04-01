@@ -456,10 +456,8 @@ export default function Login({ onLogin }) {
 
       const { access, refresh } = res.data;
 
-      // ── Token storage ─────────────────────────────────────────────────────
-      // Always store access token in localStorage so App.js getToken() finds it
-      // Remember me ON  → also keep refresh in localStorage (stay logged in after tab close)
-      // Remember me OFF → refresh only in sessionStorage (expires when tab closes)
+      // ── Write tokens FIRST, then update auth state ────────────────────────
+      // access always goes to localStorage so App.js getToken() finds it
       localStorage.setItem("access", access);
       if (remember) {
         localStorage.setItem("refresh", refresh);
@@ -467,21 +465,34 @@ export default function Login({ onLogin }) {
         sessionStorage.setItem("refresh", refresh);
       }
 
+      // Verify it was actually written before telling App we're logged in
+      if (!localStorage.getItem("access")) {
+        setError("Login failed — could not save session. Try again.");
+        setLoading(false);
+        return;
+      }
+
       if (onLogin) onLogin();
-      navigate("/");
+      // Small tick to let React process the state update before navigating
+      setTimeout(() => navigate("/"), 0);
 
     } catch (err) {
+      const data = err.response?.data;
+      console.error("Login error:", err.response?.status, JSON.stringify(data));
+
       if (err.response?.status === 401) {
-        const msg = err.response?.data?.detail || "";
-      if (msg.toLowerCase().includes("no active account")) {
-        setError("Invalid username or password. Please try again.");
-      } else {
-        setError("Invalid username or password.");
-      }
+        const detail = data?.detail || "";
+        if (detail.toLowerCase().includes("no active account")) {
+          setError("No account found with those credentials. Did you register first?");
+        } else {
+          setError(`Login failed: ${detail || "Invalid username or password."}`);
+        }
       } else if (err.response?.status === 400) {
-        setError("Please fill in all fields.");
+        setError(`Bad request: ${JSON.stringify(data)}`);
+      } else if (!err.response) {
+        setError("Server is starting up (Render free tier). Wait ~30 seconds and try again.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(`Error ${err.response.status}: ${JSON.stringify(data)}`);
       }
     } finally {
       setLoading(false);
